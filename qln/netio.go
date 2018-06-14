@@ -118,7 +118,7 @@ func (nd *LitNode) DialPeer(connectAdr string) error {
 	newConn := new(lndc.LNDConn)
 
 	// TODO: handle IPv6 connections
-	err = newConn.Dial(idPriv, where, who)
+	err = newConn.Dial(idPriv, where, who, nd.ProxyURL)
 	if err != nil {
 		return err
 	}
