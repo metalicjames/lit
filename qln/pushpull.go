@@ -1,6 +1,7 @@
 package qln
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"log"
@@ -438,8 +439,38 @@ func (nd *LitNode) SendGapSigRev(q *Qchan) error {
 	// state is already incremented from DeltaSigHandler, increment *again* for n+1
 	// (note that we've moved n here.)
 	q.State.StateIdx++
-	// amt is delta (negative) plus current amt (collision already added in)
-	q.State.MyAmt += int64(q.State.Delta)
+
+	/*
+		Apply delta or
+		Apply CollisionInProgHTLC or
+		Apply CollisionClearingHTLC
+	*/
+
+	if q.State.Delta != 0 {
+		// amt is delta (negative) plus current amt (collision already added in)
+		q.State.MyAmt += int64(q.State.Delta)
+	}
+
+	if q.State.CollisionInProgHTLC != nil {
+		// TODO: Apply CollisionInProgHTLC
+
+		if q.State.InProgHTLC != nil {
+			// Need to regenerate the HTLC to use N2HTLCBase
+
+			if bytes.Compare(q.State.InProgHTLC.MyHTLCBase[:], q.State.InProgHTLC.TheirHTLCBase[:]) == -1 {
+				// MyBase is less than TheirBase: I get the lower HTLCIdx
+				// Need to regenerate theirs with N2HTLCbase
+			} else {
+				// Need to regenerate my HTLC with MyN2HTLCBase
+			}
+		} else {
+			// No colliding HTLC, just apply as before
+		}
+	}
+
+	if q.State.CollisionClearingHTLC != nil {
+		// TODO: Apply CollisionClearingHTLC
+	}
 
 	// sign state n+1
 

@@ -201,6 +201,46 @@ func (nd *LitNode) HashSigHandler(msg lnutil.HashSigMsg, qc *Qchan) error {
 
 	if collision {
 		// TODO: handle collisions
+
+		/*
+			Possible scenarios:
+				We already sent a HashSig:
+					InProgHTLC already has something in it
+					We have to move it to CollisionInProgHTLC
+					Continue verifying their InProgHTLC
+
+				PreimageSig:
+					An HTLC already set to clearing
+					Move to CollisionClearingHTLC
+					Continue verifying their InProgHTLC
+
+				DeltaSig:
+					Delta != 0
+					Move Delta to collision
+					Continue verifying their InProgHTLC
+
+		*/
+
+		if qc.State.InProgHTLC != nil {
+			// Already sent a HashSig
+			qc.State.CollisionInProgHTLC = qc.State.InProgHTLC
+			qc.State.InProgHTLC = nil
+		}
+
+		for i, h := range qc.State.HTLCs {
+			if !h.Cleared && h.Clearing {
+				// Already sent a PreimageSig
+				qc.State.CollisionClearingHTLC = new(ClearingHTLC)
+				qc.State.CollisionClearingHTLC.Idx = h.Idx
+				qc.State.CollisionClearingHTLC.R = h.R
+				qc.State.HTLCs[i].Clearing = false
+				break
+			}
+		}
+
+		if qc.State.Delta != 0 {
+			// TODO: Already sent a DeltaSig
+		}
 	}
 
 	if !collision {
@@ -285,7 +325,7 @@ func (nd *LitNode) HashSigHandler(msg lnutil.HashSigMsg, qc *Qchan) error {
 		return fmt.Errorf("HashSigHandler SaveQchanState err %s", err.Error())
 	}
 
-	if qc.State.Collision != 0 {
+	if collision {
 		err = nd.SendGapSigRev(qc)
 		if err != nil {
 			return fmt.Errorf("HashSigHandler SendGapSigRev err %s", err.Error())

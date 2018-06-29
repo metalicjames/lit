@@ -100,8 +100,10 @@ type StatCom struct {
 	// only one sig is ever stored, to prevent broadcasting the wrong tx.
 	// could add a mutex here... maybe will later.
 
-	HTLCIdx    uint32
-	InProgHTLC *HTLC // Current in progress HTLC
+	HTLCIdx               uint32
+	InProgHTLC            *HTLC // Current in progress HTLC
+	CollisionInProgHTLC   *HTLC
+	CollisionClearingHTLC *ClearingHTLC
 
 	// Analogous to the ElkPoints above but used for generating their pubkey for the HTLC
 	NextHTLCBase [33]byte
@@ -112,6 +114,11 @@ type StatCom struct {
 
 	// Any HTLCs associated with this channel state (can be nil)
 	HTLCs []HTLC
+}
+
+type ClearingHTLC struct {
+	Idx uint32
+	R   [16]byte
 }
 
 // QCloseData is the output resulting from an un-cooperative close
