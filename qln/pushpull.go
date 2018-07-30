@@ -839,7 +839,12 @@ func (nd *LitNode) SigRevHandler(msg lnutil.SigRevMsg, qc *Qchan) error {
 	}
 
 	// done updating channel, no new messages expected.  Set clear to send
-	qc.ClearToSend <- true
+
+	select {
+	case qc.ClearToSend <- true:
+	default:
+		panic("CTS was already full")
+	}
 
 	return nil
 }
