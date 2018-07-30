@@ -680,7 +680,7 @@ func (nd *LitNode) SigRevHandler(msg lnutil.SigRevMsg, qc *Qchan) error {
 
 	select {
 	case <-qc.ClearToSend:
-		panic("CTS had something in it")
+		log.Fatalf("CTS had something in it on chan %d", qc.Idx)
 	default:
 	}
 

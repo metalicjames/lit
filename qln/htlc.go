@@ -491,6 +491,7 @@ func (nd *LitNode) ClearHTLC(qc *Qchan, R [16]byte, HTLCIdx uint32, data [32]byt
 		case <-qc.ClearToSend:
 			cts = true
 		default:
+			log.Printf("CTS is empty on chan %d", qc.Idx)
 			qc.ChanMtx.Unlock()
 		}
 	}
