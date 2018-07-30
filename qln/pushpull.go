@@ -678,6 +678,12 @@ func (nd *LitNode) GapSigRevHandler(msg lnutil.GapSigRevMsg, q *Qchan) error {
 func (nd *LitNode) SigRevHandler(msg lnutil.SigRevMsg, qc *Qchan) error {
 	log.Printf("Got SigRev: %v", msg)
 
+	select {
+	case <-qc.ClearToSend:
+		panic("CTS had something in it")
+	default:
+	}
+
 	// load qchan & state from DB
 	err := nd.ReloadQchanState(qc)
 	if err != nil {

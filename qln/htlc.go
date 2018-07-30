@@ -475,6 +475,13 @@ func (nd *LitNode) ClearHTLC(qc *Qchan, R [16]byte, HTLCIdx uint32, data [32]byt
 	}
 
 	log.Println("got pre CTS...")
+
+	select {
+	case <-qc.ClearToSend:
+		panic("CTS had something in it")
+	default:
+	}
+
 	qc.ChanMtx.Unlock()
 
 	cts = false
